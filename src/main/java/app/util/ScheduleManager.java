@@ -73,16 +73,16 @@ public class ScheduleManager<T> {
 
   private void subscribeExpiredModelQueue() {
     executeModelQueueExecutor.submit(() -> {
+      Collection<T> executeModels = null;
       for (;;) {
         try {
-          Collection<T> executeModels = executeModelQueue.take();
+          executeModels = executeModelQueue.take();
           taskRunner.execute(executeModels, this);
           stats.executionCount += executeModels.size();
           stats.lastExecutionTimestampMs = currentTimestampMsGetter.getAsLong();
-          log.info("Executed {}", stats.lastExecutionTimestampMs,
-              executeModels);
+          log.info("Executed {}", executeModels);
         } catch (Throwable e) {
-          e.printStackTrace();
+          log.error("Failed to execute {}", executeModels);
         }
       }
     });
